@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>举杯视频展示</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden;
+    }
+
+    #tsparticles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* 新增的星星层 */
+    #tsparticles-stars {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 1.5; /* 在主特效层之上，视频层之下 */
+      pointer-events: none; /* 不影响鼠标事件 */
+    }
+
+    .video-wrapper {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      display: flex; align-items: center; justify-content: center;
+      animation: breathe 6s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        box-shadow: 0 0 20px 10px rgba(255,255,255,0.3);
+      }
+      50% {
+        box-shadow: 0 0 50px 25px rgba(255,255,255,0.6);
+      }
+    }
+
+    video {
+      max-width: 90vw;
+      max-height: 90vh;
+      border: 4px solid;
+      border-image: linear-gradient(
+        45deg,
+        #ff4b1f,
+        #8e44ad,
+        #1fddff,
+        #2ecc71,
+        #f1c40f,
+        #e74c3c,
+        #ff4b1f
+      ) 1;
+      animation: borderGlow 5s linear infinite;
+    }
+
+    @keyframes borderGlow {
+      0% {
+        filter: drop-shadow(0 0 5px #ff4b1f);
+        border-image-source: linear-gradient(45deg, #ff4b1f, #8e44ad);
+      }
+      25% {
+        filter: drop-shadow(0 0 10px #1fddff);
+        border-image-source: linear-gradient(45deg, #1fddff, #2ecc71);
+      }
+      50% {
+        filter: drop-shadow(0 0 10px #f1c40f);
+        border-image-source: linear-gradient(45deg, #f1c40f, #e74c3c);
+      }
+      75% {
+        filter: drop-shadow(0 0 10px #8e44ad);
+        border-image-source: linear-gradient(45deg, #8e44ad, #1fddff);
+      }
+      100% {
+        filter: drop-shadow(0 0 5px #ff4b1f);
+        border-image-source: linear-gradient(45deg, #ff4b1f, #8e44ad);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 原粒子特效层 -->
+  <div id="tsparticles"></div>
+
+  <!-- 新增星星层 -->
+  <div id="tsparticles-stars"></div>
+
+  <div class="video-wrapper">
+    <video autoplay muted loop playsinline controls>
+      <source src="举杯.mp4" type="video/mp4" />
+      您的浏览器不支持 video 标签。
+    </video>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+
+  <script>
+    // 主粒子特效，和你原来的配置一致
+    tsParticles.load("tsparticles", {
+      background: { color: "#000" },
+      fpsLimit: 60,
+      particles: {
+        number: { value: 100 },
+        color: {
+          value: ["#ff4b1f", "#1fddff", "#8e44ad", "#2ecc71", "#f1c40f", "#e74c3c"]
+        },
+        shape: { type: "circle" },
+        opacity: { value: 0.6, random: true },
+        size: { value: 3, random: true },
+        links: {
+          enable: true,
+          distance: 150,
+          color: ["#ff4b1f", "#1fddff", "#8e44ad", "#2ecc71", "#f1c40f", "#e74c3c"],
+          opacity: 0.4,
+          width: 1
+        },
+        move: {
+          enable: true,
+          speed: 1.2,
+          direction: "none",
+          outModes: { default: "bounce" }
+        }
+      },
+      detectRetina: true
+    });
+
+    // 新增星星层，彩色闪烁小点，关闭连线，避开视频中央40%区域
+    tsParticles.load("tsparticles-stars", {
+      background: { color: "transparent" },
+      fpsLimit: 60,
+      particles: {
+        number: { value: 80, density: { enable: false } },
+        color: { value: ["#ff4b1f", "#1fddff", "#8e44ad", "#2ecc71", "#f1c40f", "#e74c3c"] },
+        shape: { type: "circle" },
+        opacity: {
+          value: 1,
+          random: true,
+          anim: { enable: true, speed: 1, opacity_min: 0.2, sync: false }
+        },
+        size: { value: 2, random: { enable: true, minimumValue: 1 } },
+        move: { enable: false },  // 星星静止闪烁
+        links: { enable: false }
+      },
+      detectRetina: true,
+      interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } } }
+    }).then(container => {
+      // 调整星星位置，避开屏幕中间40%区域
+      function isInVideoArea(x, y) {
+        return (x > 30 && x < 70) && (y > 30 && y < 70);
+      }
+      container.particles.array.forEach(p => {
+        let posX, posY;
+        do {
+          posX = Math.random() * 100;
+          posY = Math.random() * 100;
+        } while (isInVideoArea(posX, posY));
+        p.position.x = (posX / 100) * container.canvas.size.width;
+        p.position.y = (posY / 100) * container.canvas.size.height;
+      });
+    });
+  </script>
+
+</body>
+</html>
